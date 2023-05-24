@@ -90,6 +90,8 @@ const statusInput: string = core.getInput('status')
 
 const descriptionInput: string = core.getInput('description')
 
+const testMode: boolean = core.getBooleanInput('test_mode')
+
 let reportDescription: string
 
 interface ReportData {
@@ -168,78 +170,53 @@ const variables: ReportVariables = {
   reporter: 'Virtual Teaching Assistant'
 }
 
-let mutation: {query: string; variables: ReportVariables}
 export async function run(): Promise<void> {
-  switch (statusInput) {
-    case 'queued':
-      mutation = {
-        query: queuedSubmissionReportQuery,
-        variables: {
-          ...variables,
-          heading: 'Automated tests are queued'
-        }
-      }
-      break
-    case 'in_progress':
-      mutation = {
-        query: inProgressSubmissionReportQuery,
-        variables: {
-          ...variables,
-          heading: 'Automated tests are in progress'
-        }
-      }
-      break
-    case 'error':
-      mutation = {
-        query: completedSubmissionReportQuery,
-        variables: {
-          ...variables,
-          heading: 'Automated tests passed',
-          status: 'error'
-        }
-      }
-      break
-    case 'failure':
-      mutation = {
-        query: completedSubmissionReportQuery,
-        variables: {
-          ...variables,
-          heading: 'Automated tests failed',
-          status: 'failure'
-        }
-      }
-      break
-    case 'success':
-      mutation = {
-        query: completedSubmissionReportQuery,
-        variables: {
-          ...variables,
-          heading: 'Automated tests passed',
-          status: 'success'
-        }
-      }
-      break
-    default:
-      throw new Error('Invalid submission report status')
-  }
+  try {
+    let query: string
+    let heading: string
 
-  const data = await graphQLClient.request(mutation.query, mutation.variables)
-  console.log(JSON.stringify(data, undefined, 2))
-}
-
-const testMode: boolean = core.getBooleanInput('test_mode')
-
-if (testMode) {
-  console.log(reportDataFromFile)
-  console.log(submissionData)
-} else {
-  console.log(reportDataFromFile)
-  ;(async () => {
-    try {
-      await run()
-      console.log('Execution Completed.')
-    } catch (error) {
-      console.log(error)
+    switch (statusInput) {
+      case 'queued':
+        query = queuedSubmissionReportQuery
+        heading = 'Automated tests are queued'
+        break
+      case 'in_progress':
+        query = inProgressSubmissionReportQuery
+        heading = 'Automated tests are in progress'
+        break
+      case 'error':
+        query = completedSubmissionReportQuery
+        heading = 'Automated tests passed'
+        break
+      case 'failure':
+        query = completedSubmissionReportQuery
+        heading = 'Automated tests failed'
+        break
+      case 'success':
+        query = completedSubmissionReportQuery
+        heading = 'Automated tests passed'
+        break
+      default:
+        throw new Error('Invalid submission report status')
     }
-  })()
+
+    if (testMode) {
+      console.log('reportDataFromFile', reportDataFromFile)
+      console.log('submissionData', submissionData)
+      console.log('variables', JSON.stringify(variables, undefined, 2))
+      console.log('query', query)
+      console.log('heading', heading)
+    } else {
+      const data = await graphQLClient.request(query, {
+        ...variables,
+        heading,
+        status: statusInput
+      })
+      console.log(JSON.stringify(data, undefined, 2))
+    }
+  } catch (error) {
+    console.log(error)
+  }
 }
+
+run()
