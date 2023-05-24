@@ -2,104 +2,58 @@
   <a href="https://github.com/actions/typescript-action/actions"><img alt="typescript-action status" src="https://github.com/actions/typescript-action/workflows/build-test/badge.svg"></a>
 </p>
 
-# Create a JavaScript Action using TypeScript
+# Pupilfirst Report Action
 
-Use this template to bootstrap the creation of a TypeScript action.:rocket:
-
-This template includes compilation support, tests, a validation workflow, publishing, and versioning guidance.  
-
-If you are new, there's also a simpler introduction.  See the [Hello World JavaScript Action](https://github.com/actions/hello-world-javascript-action)
-
-## Create an action from this template
-
-Click the `Use this Template` and provide the new repo details for your action
-
-## Code in Main
-
-> First, you'll need to have a reasonably modern version of `node` handy. This won't work with versions older than 9, for instance.
-
-Install the dependencies  
-```bash
-$ npm install
-```
-
-Build the typescript and package it for distribution
-```bash
-$ npm run build && npm run package
-```
-
-Run the tests :heavy_check_mark:  
-```bash
-$ npm test
-
- PASS  ./index.test.js
-  ✓ throws invalid number (3ms)
-  ✓ wait 500 ms (504ms)
-  ✓ test runs (95ms)
-
-...
-```
-
-## Change action.yml
-
-The action.yml defines the inputs and output for your action.
-
-Update the action.yml with your name, description, inputs and outputs for your action.
-
-See the [documentation](https://help.github.com/en/articles/metadata-syntax-for-github-actions)
-
-## Change the Code
-
-Most toolkit and CI/CD operations involve async operations so the action is run in an async function.
-
-```javascript
-import * as core from '@actions/core';
-...
-
-async function run() {
-  try { 
-      ...
-  } 
-  catch (error) {
-    core.setFailed(error.message);
-  }
-}
-
-run()
-```
-
-See the [toolkit documentation](https://github.com/actions/toolkit/blob/master/README.md#packages) for the various packages.
-
-## Publish to a distribution branch
-
-Actions are run from GitHub repos so we will checkin the packed dist folder. 
-
-Then run [ncc](https://github.com/zeit/ncc) and push the results:
-```bash
-$ npm run package
-$ git add dist
-$ git commit -a -m "prod dependencies"
-$ git push origin releases/v1
-```
-
-Note: We recommend using the `--license` option for ncc, which will create a license file for all of the production node modules used in your project.
-
-Your action is now published! :rocket: 
-
-See the [versioning documentation](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md)
-
-## Validate
-
-You can now validate the action by referencing `./` in a workflow in your repo (see [test.yml](.github/workflows/test.yml))
+The reporting action accepts three inputs - `report_file_path`, `status` and `description` . The `status` and `description` is specifically useful to report to the LMS that a test has begun in the automated system. The action expects the `REVIEW_END_POINT` and `REVIEW_BOT_USER_TOKEN` as env , the first being the GraphQL API endpoint of your school and the latter being the user token for the user created for bot actions. It is recommended to keep both of these as secrets. Here is a basic example:
 
 ```yaml
-uses: ./
-with:
-  milliseconds: 1000
+# Using the reporting action with status and description supplied as input.
+- name: Report to LMS tests in progress
+  uses: pupilfirstr/actions/reporting@v1
+  with:
+    # Valid status inputs are pending, success, failure, error.
+    status: 'pending'
+    description: 'The automated tests are in progress'
+  env:
+    # GraphQL API endpoint for your school in the LMS.
+    REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+    # User API token of the review bot user.
+    REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
 ```
 
-See the [actions tab](https://github.com/actions/typescript-action/actions) for runs of this action! :rocket:
+In the absence of `status` and `description` inputs to the action, the action expects a `report.json` file in the checked out repository to complete the reporting. The `report_file_path` should be supplied accurately - which is the relative path to the file in the checked out repository. The `report.json` should have the keys `report` which stores the report description and `status` which stores the status to be reported. In the absence of a valid `report.json` or inputs directly to the action, an error will be reported to the LMS. Ensure that your automated tests generate a `report.json` output with the said keys before the reporting step. Here is an example of using the action without `status` and `description` input:
 
-## Usage:
+```yaml
+# Using the reporting action without status and description supplied as input.
+- name: Report to LMS tests in progress
+  uses: pupilfirstr/actions/reporting@v1
+  with:
+    # File path when the report.json is in submission directory in the checked out repo.
+    report_file_path: 'submission/report.json'
+  env:
+    # GraphQL API endpoint for your school in the LMS.
+    REVIEW_END_POINT: ${{ secrets.REVIEW_END_POINT }}
+    # User API token of the review bot user.
+    REVIEW_BOT_USER_TOKEN: ${{ secrets.REVIEW_BOT_USER_TOKEN }}
+```
 
-After testing you can [create a v1 tag](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md) to reference the stable and latest V1 action
+In the presence of `status` and `description` inputs to the action, the values in `report.json` will be ignored if present.
+
+## How to build and release
+
+When releasing a new version, you should always push two tags - the full version tag - `v1.2.3` for example, and the corresponding major version tag - `v1`, for `v1.2.3`. You will need to delete the existing major version tag, and push a replacement tag for each release.
+
+```bash
+# Build the action.
+npm run all
+
+# Delete the old local tag, and create it anew.
+git tag -d v1
+git tag v1
+git tag v1.2.3
+
+# Delete the old tag on origin before pushing updated ones.
+git push origin :refs/tags/v1
+git push origin v1
+git push origin v1.2.3
+```
