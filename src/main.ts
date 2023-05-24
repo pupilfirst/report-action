@@ -98,7 +98,7 @@ interface ReportData {
   status: string
 }
 
-let reportDataFromFile: ReportData = {grading: '', report: '', status: ''}
+let reportDataFromFile: ReportData | undefined
 
 if (reportFilePath !== '') {
   try {

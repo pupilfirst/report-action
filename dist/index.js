@@ -115,7 +115,7 @@ const reportFilePath = core.getInput('report_file_path');
 const statusInput = core.getInput('status');
 const descriptionInput = core.getInput('description');
 let reportDescription;
-let reportDataFromFile = { grading: '', report: '', status: '' };
+let reportDataFromFile;
 if (reportFilePath !== '') {
     try {
         reportDataFromFile = JSON.parse(fs.readFileSync(path.join(process.env.GITHUB_WORKSPACE || '', reportFilePath), { encoding: 'utf-8' }));
