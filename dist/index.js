@@ -127,7 +127,7 @@ if (reportFilePath !== '') {
 const reportIfGraded = (reportData) => {
     const grading = reportData.grading;
     const report = grading === 'reject'
-        ? 'Submission will be eventually rejected and feedback will be shared'
+        ? 'Submission will be eventually rejected and feedback will be shared.'
         : '';
     return report;
 };
