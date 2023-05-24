@@ -177,7 +177,7 @@ function run() {
                     break;
                 case 'error':
                     query = completedSubmissionReportQuery;
-                    heading = 'Automated tests passed';
+                    heading = 'Automated tests errored';
                     break;
                 case 'failure':
                     query = completedSubmissionReportQuery;
@@ -191,11 +191,10 @@ function run() {
                     throw new Error('Invalid submission report status');
             }
             if (testMode) {
-                console.log('reportDataFromFile', reportDataFromFile);
-                console.log('submissionData', submissionData);
-                console.log('variables', JSON.stringify(variables, undefined, 2));
-                console.log('query', query);
-                console.log('heading', heading);
+                console.log('variables: ', JSON.stringify(variables, undefined, 2));
+                console.log('heading: ', heading);
+                console.log('query: ', query);
+                console.log('reportDataFromFile: ', reportDataFromFile);
             }
             else {
                 const data = yield graphQLClient.request(query, Object.assign(Object.assign({}, variables), { heading, status: statusInput }));
