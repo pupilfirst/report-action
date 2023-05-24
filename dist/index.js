@@ -166,7 +166,7 @@ function run() {
         try {
             let query;
             let heading;
-            switch (statusInput) {
+            switch (reportStatus) {
                 case 'queued':
                     query = queuedSubmissionReportQuery;
                     heading = 'Automated tests are queued';
@@ -188,7 +188,7 @@ function run() {
                     heading = 'Automated tests passed';
                     break;
                 default:
-                    throw new Error('Invalid submission report status');
+                    throw new Error(`Invalid submission report status: ${reportStatus}`);
             }
             if (testMode) {
                 console.log('variables: ', JSON.stringify(variables, undefined, 2));
@@ -197,7 +197,7 @@ function run() {
                 console.log('reportDataFromFile: ', reportDataFromFile);
             }
             else {
-                const data = yield graphQLClient.request(query, Object.assign(Object.assign({}, variables), { heading, status: statusInput }));
+                const data = yield graphQLClient.request(query, Object.assign(Object.assign({}, variables), { heading }));
                 console.log(JSON.stringify(data, undefined, 2));
             }
         }

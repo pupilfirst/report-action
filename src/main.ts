@@ -175,7 +175,7 @@ export async function run(): Promise<void> {
     let query: string
     let heading: string
 
-    switch (statusInput) {
+    switch (reportStatus) {
       case 'queued':
         query = queuedSubmissionReportQuery
         heading = 'Automated tests are queued'
@@ -197,7 +197,7 @@ export async function run(): Promise<void> {
         heading = 'Automated tests passed'
         break
       default:
-        throw new Error('Invalid submission report status')
+        throw new Error(`Invalid submission report status: ${reportStatus}`)
     }
 
     if (testMode) {
@@ -208,8 +208,7 @@ export async function run(): Promise<void> {
     } else {
       const data = await graphQLClient.request(query, {
         ...variables,
-        heading,
-        status: statusInput
+        heading
       })
       console.log(JSON.stringify(data, undefined, 2))
     }
