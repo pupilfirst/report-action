@@ -21,4 +21,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: ./
         with:
-          milliseconds: 1000
+          status: 'error'
+          description: |
+            Automated tests could not be run successfully. Please ask a member
+            of the Pupilfirst team to look into this submission's VTA logs.
